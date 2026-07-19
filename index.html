@@ -18,8 +18,9 @@
   <div class="static"></div>
   <div class="intro-ui">
     <div class="osd"><span id="introStatus">TRACKING</span> <span class="blink">▮</span> <span id="introPct">0%</span></div>
-    <div class="intro-bar"><i id="introBar"></i></div>
-    <div class="intro-welcome">深夜のバーへようこそ ・ welcome to the midnight bar</div>
+    <div class="intro-bar" id="introBar" aria-hidden="true">
+      <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+    </div>
     <button class="intro-enter" id="introEnter" data-i18n="intro.enter">PRESS PLAY ▶</button>
   </div>
   <button class="intro-sound" id="introSound" title="ambient sound">♪ SOUND ON</button>
@@ -47,7 +48,7 @@
     <a href="#player" data-i18n="nav.player">PLAYER</a>
     <a href="#clips" data-i18n="nav.clips">CLIPS</a>
     <a href="#live" data-i18n="nav.live">LIVE</a>
-    <a href="members.html" data-i18n="nav.members">MEMBERS</a>
+    <a href="#members" data-i18n="nav.members">MEMBERS</a>
   </nav>
   <div class="nav-tools">
     <button class="chip" id="langBtn" title="Language">EN / 日本語</button>
@@ -60,6 +61,10 @@
 
   <!-- ══════════ HERO ══════════ -->
   <section class="hero">
+    <video class="hero-bgvideo" autoplay muted playsinline preload="auto"
+      poster="assets/hero-bg-poster.jpg" aria-hidden="true">
+      <source src="assets/videoplayback%20(1).mp4" type="video/mp4">
+    </video>
     <div class="hero-alley"></div>
     <div class="hero-avant" aria-hidden="true">
       <div class="av-ring"></div>
@@ -67,9 +72,9 @@
       <div class="av-beam"></div>
       <div class="av-beam av-beam--2"></div>
       <div class="av-blocks"></div>
-      <span class="av-kana av-kana--1">深夜放送</span>
-      <span class="av-kana av-kana--2">都市の音楽</span>
-      <span class="av-kana av-kana--3">ネオンの血管</span>
+      <span class="av-kana av-kana--1 av-lyric" id="avLyric0" aria-hidden="true"></span>
+      <span class="av-kana av-kana--2 av-lyric" id="avLyric1" aria-hidden="true"></span>
+      <span class="av-kana av-kana--3 av-lyric" id="avLyric2" aria-hidden="true"></span>
     </div>
     <div class="hero-glow" id="heroGlow" aria-hidden="true"></div>
     <canvas id="rain" aria-hidden="true"></canvas>
@@ -80,17 +85,21 @@
     </div>
     <div class="hero-osd-rec osd osd--live"><span class="blink">●</span> ON AIR</div>
 
-    <div class="sign-wrap">
+    <div class="sign-wrap" id="signWrap">
       <h1 class="neon-sign" aria-label="Lunchtime Dead">
-        <img class="neon-logo flicker" src="assets/logo-white.png" alt="Lunchtime Dead">
+        <img class="neon-logo flicker" id="neonLogoImg" src="assets/logo-white.png" alt="Lunchtime Dead">
+        <canvas class="neon-logo-3d" id="heroLogo3d" aria-hidden="true"></canvas>
       </h1>
       <div class="sign-kana">ランチタイム・デッド</div>
+      <div class="sign-switches">
+        <button class="neon-switch" id="neonSwitch" type="button" aria-pressed="true" title="toggle neon sign">
+          <span class="neon-switch-dot" aria-hidden="true"></span><span data-i18n="hero.neon">NEON</span>
+        </button>
+        <button class="neon-switch" id="ambientSwitch" type="button" aria-pressed="true" title="toggle background music">
+          <span class="neon-switch-dot" aria-hidden="true"></span><span>FLYING GIRL ♪</span>
+        </button>
+      </div>
     </div>
-
-    <p class="hero-tagline">
-      <span data-i18n="hero.tag">City pop for the hour the city forgets.</span>
-      <span class="jp" data-i18n="hero.tag2">Punk hearts, neon veins, one long last order.</span>
-    </p>
 
     <a class="hero-scroll osd" href="#player">▼ <span data-i18n="hero.scroll">INSERT TAPE</span></a>
   </section>
@@ -250,7 +259,93 @@
     </div>
   </section>
 
+  <!-- ══════════ MEMBERS ══════════ -->
+  <section class="scene" id="members">
+    <div class="scene-inner">
+      <header class="subtitle reveal">
+        <span class="osd tc">SCENE 04 ・ 01:44:00:00</span>
+        <h2 data-i18n="cast.title">キャスト</h2>
+        <span class="sub-alt" data-i18n="cast.sub">— cast ・ starring —</span>
+      </header>
+
+      <div class="cast-grid">
+
+        <article class="cast-card reveal">
+          <div class="cast-vinyl" aria-hidden="true"></div>
+          <div class="cast-photo">
+            <span class="bgblur" style="background-image:url('assets/miwa.jpg')" aria-hidden="true"></span>
+            <span class="cast-osd osd">CAST 01 <span class="blink">▮</span></span>
+            <span class="cast-side">SIDE A</span>
+            <img src="assets/miwa.jpg" alt="Miwa Don">
+          </div>
+          <div class="cast-body">
+            <h3 class="cast-name">Miwa Don</h3>
+            <div class="cast-kana">ミワ・ドン ・ VOCAL</div>
+            <button class="cast-toggle" aria-expanded="false">
+              <span data-i18n="cast.open">LINER NOTES</span><span class="arrow">▼</span>
+            </button>
+            <div class="cast-liner">
+              <dl class="cast-facts">
+                <div><dt data-i18n="cast.role">ROLE</dt><dd data-i18n="cast.m1.role">Lead Vocals</dd></div>
+                <div><dt data-i18n="cast.origin">ORIGIN</dt><dd data-i18n="cast.m1.origin">Hiroshima</dd></div>
+                <div><dt data-i18n="cast.style">STYLE</dt><dd data-i18n="cast.m1.style">City Pop ・ Nocturne Jazz</dd></div>
+                <div><dt data-i18n="cast.band">BAND</dt><dd>Lunchtime Dead</dd></div>
+              </dl>
+              <p class="cast-quote">「声の中に消えない夜がある」
+                <span class="en" data-i18n="cast.m1.quote">There is a night inside the voice that never fades.</span>
+              </p>
+            </div>
+          </div>
+        </article>
+
+        <article class="cast-card reveal">
+          <div class="cast-vinyl" aria-hidden="true"></div>
+          <div class="cast-photo">
+            <span class="bgblur" style="background-image:url('assets/kaya.jpg')" aria-hidden="true"></span>
+            <span class="cast-osd osd">CAST 02 <span class="blink">▮</span></span>
+            <span class="cast-side">SIDE B</span>
+            <img src="assets/kaya.jpg" alt="Kayanuma Taiki">
+          </div>
+          <div class="cast-body">
+            <h3 class="cast-name">Kayanuma Taiki</h3>
+            <div class="cast-kana">カヤヌマ・タイキ ・ COMPOSER</div>
+            <button class="cast-toggle" aria-expanded="false">
+              <span data-i18n="cast.open">LINER NOTES</span><span class="arrow">▼</span>
+            </button>
+            <div class="cast-liner">
+              <dl class="cast-facts">
+                <div><dt data-i18n="cast.role">ROLE</dt><dd data-i18n="cast.m2.role">Composer ・ Arranger</dd></div>
+                <div><dt data-i18n="cast.origin">ORIGIN</dt><dd data-i18n="cast.m2.origin">Tokyo</dd></div>
+                <div><dt data-i18n="cast.style">STYLE</dt><dd data-i18n="cast.m2.style">Jazz Harmony ・ Nocturne</dd></div>
+                <div><dt data-i18n="cast.band">BAND</dt><dd>Lunchtime Dead</dd></div>
+              </dl>
+              <p class="cast-quote">「音符の隙間に沈黙を置く」
+                <span class="en" data-i18n="cast.m2.quote">He places silence in the gaps between the notes.</span>
+              </p>
+            </div>
+          </div>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
 </main>
+
+<!-- ══════════ MINI PLAYER (persists while scrolling away from the deck) ══════════ -->
+<div class="mini-player" id="miniPlayer" aria-hidden="true">
+  <button class="mp-play" id="miniPlayBtn" title="play/pause" type="button">
+    <svg viewBox="0 0 24 24" id="miniPlayIcon"><path d="M8 5v14l11-7z"/></svg>
+  </button>
+  <a class="mp-info" href="#player" id="miniInfo">
+    <img class="mp-art" id="miniArt" src="assets/cover.jpg" alt="">
+    <div class="mp-text">
+      <div class="mp-title" id="miniTitle">—</div>
+      <div class="mp-sub osd">LUNCHTIME DEAD ・ ▲ OPEN PLAYER</div>
+    </div>
+  </a>
+  <div class="mp-seek" aria-hidden="true"><i class="mp-seek-fill" id="miniSeekFill"></i></div>
+</div>
 
 <footer class="site-foot">
   <span class="osd">© 2026 LUNCHTIME DEAD ・ ランチタイム・デッド</span>
@@ -263,5 +358,6 @@
 <script src="intro.js"></script>
 <script src="visualizer.js"></script>
 <script src="app.js"></script>
+<script src="hero3d.js"></script>
 </body>
 </html>

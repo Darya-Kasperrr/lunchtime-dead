@@ -348,7 +348,10 @@
     pctEl.textContent = Math.round(progress) + '%';
 
     const barEl = document.getElementById('introBar');
-    if (barEl) barEl.style.width = Math.round(progress) + '%';
+    if (barEl) {
+      const lit = Math.round((progress / 100) * barEl.children.length);
+      for (let i = 0; i < barEl.children.length; i++) barEl.children[i].classList.toggle('lit', i < lit);
+    }
 
     if (progress > 99 && !ready) {
       ready = true;

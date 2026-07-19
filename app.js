@@ -15,6 +15,7 @@
       'hero.tag': 'City pop for the hour the city forgets.',
       'hero.tag2': 'Punk hearts, neon veins, one long last order.',
       'hero.scroll': 'INSERT TAPE',
+      'hero.neon': 'NEON',
       'player.title': 'Only the music speaks',
       'player.sub': '— 音楽だけが語りかける —',
       'player.now': 'NOW PLAYING', 'player.add': 'ADD TRACKS',
@@ -48,6 +49,7 @@
       'hero.tag': '街が忘れる時間のためのシティ・ポップ。',
       'hero.tag2': 'パンクの心、ネオンの血管、終わらないラストオーダー。',
       'hero.scroll': 'テープを挿入',
+      'hero.neon': 'ネオン',
       'player.title': '音楽だけが語りかける',
       'player.sub': '— only the music speaks —',
       'player.now': '再生中', 'player.add': '曲を追加',
@@ -103,6 +105,17 @@
     glitch(); applyTheme();
   });
   applyTheme();
+
+  /* respect reduced-motion: freeze the hero background video on its poster */
+  const heroVideo = $('.hero-bgvideo');
+  if (heroVideo) {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      heroVideo.pause(); heroVideo.currentTime = 0;
+    } else {
+      /* loop: when video ends, restart from the beginning */
+      heroVideo.addEventListener('ended', () => { heroVideo.currentTime = 0; heroVideo.play().catch(() => {}); });
+    }
+  }
 
   /* ─────────── chrome: glitch bar, clock, nav ─────────── */
   function glitch() {
@@ -186,13 +199,44 @@
       }
     } catch (e) { /* no sound — fine */ }
   }
-  $$('.cast-toggle').forEach(btn => btn.addEventListener('click', () => {
-    const card = btn.closest('.cast-card');
+  function toggleCastCard(card) {
+    const btn = card.querySelector('.cast-toggle');
     const open = card.classList.toggle('open');
-    btn.setAttribute('aria-expanded', open);
+    if (btn) btn.setAttribute('aria-expanded', open);
     sleeveSound(open);
     glitch();
-  }));
+  }
+  $$('.cast-toggle').forEach(btn => btn.addEventListener('click', () => toggleCastCard(btn.closest('.cast-card'))));
+  // the photo itself is also a big, obvious click target
+  $$('.cast-photo').forEach(photo => photo.addEventListener('click', () => toggleCastCard(photo.closest('.cast-card'))));
+
+  /* cast cards: cursor-follow tilt, like flipping a record sleeve in your hands */
+  $$('.cast-card').forEach(card => {
+    let tx = 0, ty = 0, sx = 0, sy = 0, hovering = false, raf = null;
+    function step() {
+      sx += (tx - sx) * 0.15; sy += (ty - sy) * 0.15;
+      if (hovering || Math.abs(sx) > 0.001 || Math.abs(sy) > 0.001) {
+        const lift = hovering ? -6 : 0;
+        card.style.transform = `perspective(900px) translateY(${lift}px) rotateY(${sx * 7}deg) rotateX(${sy * -6}deg)`;
+        raf = requestAnimationFrame(step);
+      } else {
+        card.style.transform = '';
+        raf = null;
+      }
+    }
+    card.addEventListener('pointermove', e => {
+      if (e.pointerType === 'touch') return;
+      hovering = true;
+      const r = card.getBoundingClientRect();
+      tx = ((e.clientX - r.left) / r.width) * 2 - 1;
+      ty = ((e.clientY - r.top) / r.height) * 2 - 1;
+      if (!raf) raf = requestAnimationFrame(step);
+    });
+    card.addEventListener('pointerleave', () => {
+      hovering = false; tx = 0; ty = 0;
+      if (!raf) raf = requestAnimationFrame(step);
+    });
+  });
 
   /* reveal on scroll */
   const io = new IntersectionObserver(es => es.forEach(e => {
@@ -229,6 +273,119 @@
     })();
   })();
 
+  /* ─────────── hero ambient track: Flying Girl (loop, toggle, ducks for the deck) ─────────── */
+  (function heroAmbient() {
+    const btn = $('#ambientSwitch');
+    if (!btn) return;
+    const track = new Audio('assets/Lunchtime%20Dead%20-%20Flying%20Girl.mp3');
+    track.loop = true;
+    track.volume = 0;
+    track.preload = 'none';
+    const TARGET_VOL = 0.35;
+
+    let on = localStorage.getItem('ltd-hero-music') !== 'off';
+    let duckedByDeck = false;
+    let fadeRaf = null;
+    function reflect() {
+      btn.setAttribute('aria-pressed', String(on));
+    }
+    reflect();
+
+    function fadeTo(vol, ms, done) {
+      if (fadeRaf) cancelAnimationFrame(fadeRaf);
+      const start = track.volume, t0 = performance.now();
+      (function step(now) {
+        const p = Math.min(1, (now - t0) / ms);
+        track.volume = Math.max(0, Math.min(1, start + (vol - start) * p));
+        if (p < 1) fadeRaf = requestAnimationFrame(step);
+        else { fadeRaf = null; if (done) done(); }
+      })(t0);
+    }
+    function tryPlay() {
+      if (!on || duckedByDeck) return;
+      track.play().then(() => fadeTo(TARGET_VOL, 1400)).catch(() => {});
+    }
+    function pause() { fadeTo(0, 400, () => track.pause()); }
+
+    btn.addEventListener('click', () => {
+      on = !on;
+      localStorage.setItem('ltd-hero-music', on ? 'on' : 'off');
+      reflect();
+      if (on) tryPlay(); else pause();
+    });
+
+    // browsers only allow playback after a user gesture
+    ['pointerdown', 'keydown', 'touchstart'].forEach(ev =>
+      addEventListener(ev, tryPlay, { once: true, capture: true, passive: true }));
+
+    // duck out whenever the main deck is playing something, resume after
+    document.addEventListener('ltd:deck', e => {
+      duckedByDeck = !!e.detail.playing;
+      if (duckedByDeck) pause(); else tryPlay();
+    });
+
+    /* ── lyrics: cycle Flying Girl verses, timed to the real vocal track ── */
+    const LYRIC_LINES = [
+      { at: 36.5, text: '教えてくれるのかい？' },
+      { at: 42.0, text: 'この星のルールを' },
+      { at: 47.5, text: '連れ去ってくれるのかい？' },
+      { at: 53.0, text: 'この僕でも' },
+      { at: 58.5, text: '遠い雲、ビルの隙間' },
+      { at: 64.0, text: '40年前と同じ匂いに' },
+      { at: 69.5, text: 'むせかえる' },
+      { at: 75.0, text: '楔はもう外れた' },
+      { at: 80.5, text: '穴が空いた体で' },
+      { at: 86.0, text: '歩き回る' },
+      // repeated hook, matches the real vocal — 1:45–2:17, alternating slots
+      { at: 105.0, text: 'Flying Girl' },
+      { at: 109.5, text: 'Flying Girl' },
+      { at: 114.0, text: 'Flying Girl' },
+      { at: 118.5, text: 'Flying Girl' },
+      { at: 123.0, text: 'Flying Girl' },
+      { at: 127.5, text: 'Flying Girl' },
+      { at: 132.0, text: 'Flying Girl' },
+      { at: 137.0, text: null } // hook ends — clear
+    ];
+
+    const lyricEls = [0, 1, 2].map(i => $('#avLyric' + i));
+    let lastLyricIdx = -1;
+
+    function clearLyrics() {
+      lyricEls.forEach(el => el && el.classList.remove('show'));
+      lastLyricIdx = -1;
+    }
+
+    track.addEventListener('timeupdate', () => {
+      const t = track.currentTime;
+      if (t < LYRIC_LINES[0].at) { if (lastLyricIdx !== -1) clearLyrics(); return; }
+      let idx = -1;
+      for (let i = 0; i < LYRIC_LINES.length; i++) if (t >= LYRIC_LINES[i].at) idx = i; else break;
+      if (idx === lastLyricIdx) return;
+      // hide outgoing slot
+      if (lastLyricIdx >= 0) {
+        const prev = lyricEls[lastLyricIdx % 3];
+        if (prev) prev.classList.remove('show');
+      }
+      // show incoming slot (unless this marks the end of a section)
+      const line = LYRIC_LINES[idx];
+      if (line.text) {
+        const slot = lyricEls[idx % 3];
+        if (slot) {
+          slot.textContent = line.text;
+          slot.classList.toggle('is-latin', /^[a-z\s]+$/i.test(line.text));
+          void slot.offsetWidth; // force reflow so fade re-triggers
+          slot.classList.add('show');
+        }
+      }
+      lastLyricIdx = idx;
+    });
+
+    // reset on seek or stop
+    track.addEventListener('seeked', clearLyrics);
+  })();
+
+  let AMP = 0; // exported amplitude — used by rain canvas below and the deck's audio-reactive FX
+
   /* rain canvas on hero (2D, cheap) */
   const rainC = $('#rain');
   if (rainC) {
@@ -263,7 +420,6 @@
      TAPE DECK — player, playlist (IndexedDB), audio-reactive bg
      ══════════════════════════════════════════════════════════ */
   const deck = $('#deck');
-  let AMP = 0; // exported amplitude
   // opened as a local file? browsers then mute WebAudio-routed media and block
   // YouTube embeds — degrade gracefully so sound always comes first
   const LOCAL_FILE = location.protocol === 'file:';
@@ -276,6 +432,12 @@
       id: 'default-tsubame',
       name: 'Tsubame big joy — A city with Green',
       url: 'assets/tsubame.mp3',
+      builtin: true
+    }, {
+      id: 'default-flying-girl',
+      name: 'Flying Girl',
+      url: 'assets/Lunchtime%20Dead%20-%20Flying%20Girl.mp3',
+      art: 'assets/unnamed.png',
       builtin: true
     }];
 
@@ -418,7 +580,6 @@
       x.shadowBlur = 0;
     }
 
-    let beatCool = 0;
     (function vizLoop() {
       requestAnimationFrame(vizLoop);
       const W = eq.width, H = eq.height;
@@ -482,10 +643,6 @@
 
       AMP += (level - AMP) * 0.25;
       root.style.setProperty('--amp', AMP.toFixed(3));
-
-      // heavy beat → occasional tracking glitch
-      if (level > 0.45 && beatCool <= 0) { glitch(); beatCool = 260; }
-      beatCool--;
     })();
 
     /* — playlist UI — */
@@ -531,13 +688,64 @@
     const btnPlay = $('#btnPlay'), playIcon = $('#playIcon');
     const seekBar = $('#seekBar'), volBar = $('#volBar');
     const tCur = $('#tCur'), tDur = $('#tDur');
-    const nowTitle = $('#nowTitle'), deckStatus = $('#deckStatus'), tapeCount = $('#tapeCount');
+    const nowTitle = $('#nowTitle'), deckStatus = $('#deckStatus'), tapeCount = $('#tapeCount'), nowArt = $('#nowArt');
+
+    /* — mini player: stays reachable while the user scrolls away from the deck — */
+    const miniPlayer = $('#miniPlayer'), miniPlayBtn = $('#miniPlayBtn'), miniPlayIcon = $('#miniPlayIcon'),
+          miniTitle = $('#miniTitle'), miniArt = $('#miniArt'), miniSeekFill = $('#miniSeekFill');
+    let deckVisible = true;
+    function updateMini() {
+      if (!miniPlayer) return;
+      const show = playing && !deckVisible;
+      miniPlayer.classList.toggle('show', show);
+      miniPlayer.setAttribute('aria-hidden', String(!show));
+      if (miniPlayIcon) miniPlayIcon.innerHTML = playing ? '<path d="M7 5h4v14H7zM13 5h4v14h-4z"/>' : '<path d="M8 5v14l11-7z"/>';
+    }
+    if (miniPlayer && 'IntersectionObserver' in window) {
+      new IntersectionObserver(es => { deckVisible = es[0].isIntersecting; updateMini(); }, { threshold: 0.01 }).observe(deck);
+    }
+    if (miniPlayBtn) miniPlayBtn.addEventListener('click', () => playing ? (audio.pause(), setPlaying(false)) : play());
+
+    /* — Media Session API: OS / browser media controls work even from other tabs — */
+    function updateMediaSession() {
+      if (!('mediaSession' in navigator) || !tracks.length) return;
+      const tr = tracks[cur];
+      try {
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: tr.name,
+          artist: 'Lunchtime Dead',
+          artwork: [{ src: tr.art || 'assets/cover.jpg', sizes: '512x512', type: 'image/jpeg' }]
+        });
+      } catch (e) {}
+    }
+    if ('mediaSession' in navigator) {
+      navigator.mediaSession.setActionHandler('play',  () => play());
+      navigator.mediaSession.setActionHandler('pause', () => { audio.pause(); setPlaying(false); });
+      navigator.mediaSession.setActionHandler('previoustrack', () => {
+        audio.currentTime > 3 ? (audio.currentTime = 0) : load(cur - 1, playing);
+      });
+      navigator.mediaSession.setActionHandler('nexttrack', () => next(false));
+      try {
+        navigator.mediaSession.setActionHandler('seekto', e => {
+          if (audio.duration && e.seekTime != null) audio.currentTime = e.seekTime;
+        });
+        navigator.mediaSession.setActionHandler('seekforward',  e => {
+          audio.currentTime = Math.min(audio.duration || 0, audio.currentTime + (e.seekOffset || 10));
+        });
+        navigator.mediaSession.setActionHandler('seekbackward', e => {
+          audio.currentTime = Math.max(0, audio.currentTime - (e.seekOffset || 10));
+        });
+      } catch (e) {}
+    }
 
     function setPlaying(v) {
       playing = v;
       deck.classList.toggle('playing', v);
       playIcon.innerHTML = v ? '<path d="M7 5h4v14H7zM13 5h4v14h-4z"/>' : '<path d="M8 5v14l11-7z"/>';
       deckStatus.textContent = v ? t('deck.play') : (audio.currentTime > 0 ? t('deck.pause') : t('deck.stop'));
+      updateMini();
+      if ('mediaSession' in navigator) navigator.mediaSession.playbackState = v ? 'playing' : 'paused';
+      document.dispatchEvent(new CustomEvent('ltd:deck', { detail: { playing: v, title: tracks[cur] && tracks[cur].name } }));
     }
     function load(i, autoplay) {
       if (!tracks.length) return;
@@ -545,7 +753,11 @@
       const tr = tracks[cur];
       audio.src = tr.url;
       nowTitle.textContent = tr.name;
+      if (nowArt) nowArt.src = tr.art || 'assets/cover.jpg';
+      if (miniTitle) miniTitle.textContent = tr.name;
+      if (miniArt) miniArt.src = tr.art || 'assets/cover.jpg';
       renderPlaylist();
+      updateMediaSession();
       if (autoplay) play();
     }
     function play() {
@@ -580,6 +792,16 @@
         seekBar.value = p;
         seekBar.style.setProperty('--fill', (p / 10) + '%');
         tapeCount.textContent = String(Math.floor(audio.currentTime)).padStart(3, '0');
+        if (miniSeekFill) miniSeekFill.style.width = (p / 10) + '%';
+        if ('mediaSession' in navigator && navigator.mediaSession.setPositionState) {
+          try {
+            navigator.mediaSession.setPositionState({
+              duration: audio.duration,
+              playbackRate: audio.playbackRate,
+              position: audio.currentTime
+            });
+          } catch (e) {}
+        }
       }
     });
     seekBar.addEventListener('input', () => {
