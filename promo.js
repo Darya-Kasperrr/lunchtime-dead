@@ -121,6 +121,7 @@
   audio.loop = true;
   let actx = null, analyser = null, dataArr = null, AMP = 0;
   function initAudio() {
+    if (location.protocol === 'file:') return; // keep sound audible in local preview
     try {
       actx = new (window.AudioContext || window.webkitAudioContext)();
       analyser = actx.createAnalyser();
