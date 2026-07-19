@@ -264,6 +264,9 @@
      ══════════════════════════════════════════════════════════ */
   const deck = $('#deck');
   let AMP = 0; // exported amplitude
+  // opened as a local file? browsers then mute WebAudio-routed media and block
+  // YouTube embeds — degrade gracefully so sound always comes first
+  const LOCAL_FILE = location.protocol === 'file:';
 
   if (deck) {
     const audio = new Audio();
@@ -315,6 +318,7 @@
     /* — web audio: analyser drives everything — */
     let actx, analyser, dataArr, srcNode;
     function ensureAudioGraph() {
+      if (LOCAL_FILE) return; // keep audio direct — sound beats visuals
       if (actx) { if (actx.state === 'suspended') actx.resume(); return; }
       actx = new (window.AudioContext || window.webkitAudioContext)();
       analyser = actx.createAnalyser();
@@ -623,6 +627,21 @@
 
     // start music softly after the intro if the user pressed play there
     document.addEventListener('intro:done', () => { /* user gesture happened — allow instant play on deck */ }, { once: true });
+  }
+
+  /* local-file mode: YouTube embed can't work (error 153) — show a poster instead */
+  if (location.protocol === 'file:') {
+    $$('.tv-screen iframe').forEach(fr => {
+      const link = document.createElement('a');
+      link.className = 'tv-poster';
+      link.href = 'https://www.youtube.com/watch?v=mLlyXlstjaM';
+      link.target = '_blank'; link.rel = 'noopener';
+      link.innerHTML = '<img src="https://img.youtube.com/vi/mLlyXlstjaM/hqdefault.jpg" alt="clip">' +
+        '<span class="tv-play">▶ WATCH ON YOUTUBE ・ 再生</span>';
+      fr.replaceWith(link);
+    });
+    const note = $('.deck-note');
+    if (note) note.textContent = 'Local preview: открой сайт через «Открыть сайт.command» или опубликуй его — тогда включатся визуализации и встроенный YouTube.';
   }
 
   applyLang();
