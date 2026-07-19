@@ -653,6 +653,40 @@ input[type=range]::-moz-range-thumb{
 }
 .cast-quote .en{display:block;color:var(--fg-dim);font-family:var(--font-body);font-size:12px;margin-top:4px}
 
+/* ============================================================
+   LIVE — gig schedule
+   ============================================================ */
+.gig-list{max-width:840px;margin:0 auto;display:grid;gap:14px}
+.gig{
+  display:flex;gap:clamp(14px,3vw,28px);align-items:center;
+  border:1px solid var(--line);border-radius:8px;background:var(--card);
+  padding:16px clamp(14px,2.5vw,24px);
+  transition:border-color .3s,transform .3s,box-shadow .3s;
+}
+.gig:hover{
+  border-color:var(--accent);transform:translateX(5px);
+  box-shadow:0 14px 40px -20px rgba(var(--sign-glow),.5);
+}
+.gig-date{flex:none;min-width:66px;text-align:center;font-family:var(--font-osd)}
+.gig-date .d{
+  display:block;font-size:30px;line-height:1;color:var(--accent);
+  text-shadow:0 0 16px rgba(var(--sign-glow),calc(.4 + var(--amp)*.4));
+}
+.gig-date .m{font-size:10px;letter-spacing:.18em;color:var(--fg-dim)}
+.gig-info{flex:1;min-width:0}
+.gig-info h3{font-family:var(--font-display);font-weight:700;font-size:clamp(15px,2vw,19px)}
+.gig-city{font-size:10px}
+.gig-note{font-size:12.5px;color:var(--fg-dim);margin-top:5px;line-height:1.55}
+.gig-status{flex:none}
+a.gig-status:hover{color:var(--bg);background:var(--accent);border-color:var(--accent)}
+.gig.past{opacity:.55}
+.gig.past .gig-date .d{color:var(--fg-dim);text-shadow:none}
+.gig.past:hover{border-color:var(--line);transform:none;box-shadow:none}
+@media (max-width:560px){
+  .gig{flex-wrap:wrap}
+  .gig-status{margin-left:calc(66px + 14px)}
+}
+
 /* ---------- footer ---------- */
 .site-foot{
   position:relative;z-index:1;
