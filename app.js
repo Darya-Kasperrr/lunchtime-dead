@@ -194,23 +194,6 @@
   }), { threshold: 0.12 });
   $$('.reveal').forEach(el => io.observe(el));
 
-  /* hero sign dolly: the logo drives toward you as you scroll */
-  const signWrap = $('.sign-wrap'), heroEl = $('.hero');
-  const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (signWrap && heroEl && !REDUCED) {
-    let ticking = false;
-    const dolly = () => {
-      ticking = false;
-      const p = Math.min(1.25, scrollY / (heroEl.offsetHeight * 0.85));
-      signWrap.style.transform = `translateY(${p * -4}vh) scale(${1 + p * 1.9})`;
-      signWrap.style.opacity = String(Math.max(0, 1 - p * 1.05));
-      signWrap.style.filter = `blur(${p * p * 7}px)`;
-    };
-    addEventListener('scroll', () => {
-      if (!ticking) { ticking = true; requestAnimationFrame(dolly); }
-    }, { passive: true });
-  }
-
   /* rain canvas on hero (2D, cheap) */
   const rainC = $('#rain');
   if (rainC) {

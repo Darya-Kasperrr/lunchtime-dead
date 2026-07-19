@@ -9,15 +9,20 @@
 
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+  let flyStart = 0; // fly-through: the sign rushes at you before the cut
   function finish() {
+    if (introDone) return;
     introDone = true;
     stopAmbient(true);
-    intro.classList.add('eject');
+    flyStart = performance.now();
     setTimeout(() => {
-      intro.classList.add('gone');
-      document.dispatchEvent(new CustomEvent('intro:done'));
-      setTimeout(() => intro.remove(), 700);
-    }, 380);
+      intro.classList.add('eject');
+      setTimeout(() => {
+        intro.classList.add('gone');
+        document.dispatchEvent(new CustomEvent('intro:done'));
+        setTimeout(() => intro.remove(), 700);
+      }, 380);
+    }, 640);
   }
 
   /* ── neutral ambient while loading: night rain + soft pad, all synthesized ── */
@@ -346,6 +351,14 @@
     camera.position.z = 30 - dolly - Math.min(6, progress / 18);
     camera.position.x = Math.sin(t * 0.35) * 0.55;
     camera.position.y = 0.4 + Math.sin(t * 0.22) * 0.25;
+    if (flyStart) {
+      // accelerating rush straight into the neon
+      const fp = Math.min(1, (now - flyStart) / 640);
+      const e = fp * fp * fp;
+      camera.position.z += (-4.55 - camera.position.z) * e;
+      camera.position.x *= 1 - e;
+      camera.position.y += (0.9 - camera.position.y) * e;
+    }
     camera.lookAt(0, 0.5, -6);
 
     // sign flicker
