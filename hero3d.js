@@ -160,24 +160,24 @@
   halo.position.set(0, 0, -1);
   scene.add(halo);
 
-  /* ---------- drag / touch to spin, with inertia + gentle idle drift ---------- */
-  let dragging = false, lastX = 0, lastY = 0;
-  let rotY = Math.PI, rotX = 0, velY = 0, velX = 0;
+  /* ---------- drag / touch to spin — horizontal only, so vertical page scroll still works ---------- */
+  let dragging = false, lastX = 0;
+  let rotY = Math.PI, velY = 0;
   let pointerId = null;
   // idle behaviour: sit still, gently sway left/right around wherever it was last left
   let swayBase = rotY, swaying = true, swayPhase = 0;
   const SWAY_AMP = 0.16, SWAY_SPEED = 0.35;
   canvas.addEventListener('pointerdown', e => {
-    dragging = true; swaying = false; lastX = e.clientX; lastY = e.clientY;
+    dragging = true; swaying = false; lastX = e.clientX;
     pointerId = e.pointerId;
     try { canvas.setPointerCapture(pointerId); } catch (er) {}
   });
   canvas.addEventListener('pointermove', e => {
     if (!dragging) return;
-    const dx = e.clientX - lastX, dy = e.clientY - lastY;
-    velY = dx * 0.008; velX = dy * 0.006;
-    rotY += velY; rotX += velX;
-    lastX = e.clientX; lastY = e.clientY;
+    const dx = e.clientX - lastX;
+    velY = dx * 0.008;
+    rotY += velY;
+    lastX = e.clientX;
   });
   function endDrag(e) {
     if (!dragging) return;
@@ -210,22 +210,19 @@
     last = now;
 
     if (!dragging) {
-      const coasting = Math.abs(velY) > 0.0008 || Math.abs(velX) > 0.0008;
+      const coasting = Math.abs(velY) > 0.0008;
       if (coasting) {
         // flick momentum from the drag, decaying to a stop
-        rotY += velY * dt * 4; rotX += velX * dt * 4;
-        velY *= 0.9; velX *= 0.88;
+        rotY += velY * dt * 4;
+        velY *= 0.9;
         swaying = false;
       } else if (!reduced) {
         if (!swaying) { swayBase = rotY; swayPhase = 0; swaying = true; }
         swayPhase += dt * SWAY_SPEED;
         rotY = swayBase + Math.sin(swayPhase) * SWAY_AMP;
-        rotX += (0 - rotX) * Math.min(1, dt * 1.5);
       }
     }
-    rotX = Math.max(-0.7, Math.min(0.7, rotX));
     logoGroup.rotation.y = rotY;
-    logoGroup.rotation.x = rotX;
 
     litT += ((neonOn ? 1 : 0) - litT) * Math.min(1, dt * 5);
     const dim = 0.12 + litT * 0.88;
