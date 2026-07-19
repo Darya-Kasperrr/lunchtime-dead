@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dead">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Cast — Lunchtime Dead</title>
+<meta name="description" content="The cast of Lunchtime Dead: Miwa Don and Kayanuma Taiki.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Shippori+Mincho+B1:wght@600;700;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- film chrome -->
+<div class="letterbox letterbox--top">
+  <span class="osd">SIDE B ・ CAST REEL</span>
+  <span class="osd">TOKYO ・ JAPAN ・ 東京</span>
+  <span class="osd" id="clockOsd">00:00:00</span>
+</div>
+<div class="letterbox letterbox--bottom">
+  <span class="osd">MW-9000 ・ HI-FI STEREO</span>
+  <span class="osd osd--live"><span class="blink">●</span> REC</span>
+</div>
+<div class="grain" aria-hidden="true"></div>
+<div class="scanlines" aria-hidden="true"></div>
+<div class="tracking-bar" id="trackingBar" aria-hidden="true"></div>
+
+<header class="site-nav" id="siteNav">
+  <a class="nav-brand" href="index.html">LUNCHTIME <em>DEAD</em></a>
+  <nav class="nav-links" id="navLinks">
+    <a href="index.html#player" data-i18n="nav.player">PLAYER</a>
+    <a href="index.html#clips" data-i18n="nav.clips">CLIPS</a>
+    <a href="members.html" class="active" data-i18n="nav.members">MEMBERS</a>
+  </nav>
+  <div class="nav-tools">
+    <button class="chip" id="langBtn" title="Language">EN / 日本語</button>
+    <button class="chip" id="themeBtn" title="Theme">夜 DEAD</button>
+    <button class="burger" id="burger" aria-label="menu"><span></span><span></span><span></span></button>
+  </div>
+</header>
+
+<main>
+  <section class="scene" style="padding-top:clamp(120px,18vh,180px)">
+    <div class="scene-inner">
+      <header class="subtitle reveal in">
+        <span class="osd tc">FINAL REEL ・ 01:44:00:00</span>
+        <h2 data-i18n="cast.title">キャスト</h2>
+        <span class="sub-alt" data-i18n="cast.sub">— cast ・ starring —</span>
+      </header>
+
+      <div class="cast-grid">
+
+        <article class="cast-card reveal">
+          <div class="cast-vinyl" aria-hidden="true"></div>
+          <div class="cast-photo">
+            <span class="bgblur" style="background-image:url('assets/miwa.jpg')" aria-hidden="true"></span>
+            <span class="cast-osd osd">CAST 01 <span class="blink">▮</span></span>
+            <span class="cast-side">SIDE A</span>
+            <img src="assets/miwa.jpg" alt="Miwa Don">
+          </div>
+          <div class="cast-body">
+            <h3 class="cast-name">Miwa Don</h3>
+            <div class="cast-kana">ミワ・ドン ・ VOCAL</div>
+            <button class="cast-toggle" aria-expanded="false">
+              <span data-i18n="cast.open">LINER NOTES</span><span class="arrow">▼</span>
+            </button>
+            <div class="cast-liner">
+              <dl class="cast-facts">
+                <div><dt data-i18n="cast.role">ROLE</dt><dd data-i18n="cast.m1.role">Lead Vocals</dd></div>
+                <div><dt data-i18n="cast.origin">ORIGIN</dt><dd data-i18n="cast.m1.origin">Hiroshima</dd></div>
+                <div><dt data-i18n="cast.style">STYLE</dt><dd data-i18n="cast.m1.style">City Pop ・ Nocturne Jazz</dd></div>
+                <div><dt data-i18n="cast.band">BAND</dt><dd>Lunchtime Dead</dd></div>
+              </dl>
+              <p class="cast-quote">「声の中に消えない夜がある」
+                <span class="en" data-i18n="cast.m1.quote">There is a night inside the voice that never fades.</span>
+              </p>
+            </div>
+          </div>
+        </article>
+
+        <article class="cast-card reveal">
+          <div class="cast-vinyl" aria-hidden="true"></div>
+          <div class="cast-photo">
+            <span class="bgblur" style="background-image:url('assets/kaya.jpg')" aria-hidden="true"></span>
+            <span class="cast-osd osd">CAST 02 <span class="blink">▮</span></span>
+            <span class="cast-side">SIDE B</span>
+            <img src="assets/kaya.jpg" alt="Kayanuma Taiki">
+          </div>
+          <div class="cast-body">
+            <h3 class="cast-name">Kayanuma Taiki</h3>
+            <div class="cast-kana">カヤヌマ・タイキ ・ COMPOSER</div>
+            <button class="cast-toggle" aria-expanded="false">
+              <span data-i18n="cast.open">LINER NOTES</span><span class="arrow">▼</span>
+            </button>
+            <div class="cast-liner">
+              <dl class="cast-facts">
+                <div><dt data-i18n="cast.role">ROLE</dt><dd data-i18n="cast.m2.role">Composer ・ Arranger</dd></div>
+                <div><dt data-i18n="cast.origin">ORIGIN</dt><dd data-i18n="cast.m2.origin">Tokyo</dd></div>
+                <div><dt data-i18n="cast.style">STYLE</dt><dd data-i18n="cast.m2.style">Jazz Harmony ・ Nocturne</dd></div>
+                <div><dt data-i18n="cast.band">BAND</dt><dd>Lunchtime Dead</dd></div>
+              </dl>
+              <p class="cast-quote">「音符の隙間に沈黙を置く」
+                <span class="en" data-i18n="cast.m2.quote">He places silence in the gaps between the notes.</span>
+              </p>
+            </div>
+          </div>
+        </article>
+
+      </div>
+
+      <p style="text-align:center;margin-top:clamp(40px,7vh,70px)">
+        <a class="chip" href="index.html" data-i18n="cast.back">◀ BACK TO THE BAR</a>
+      </p>
+    </div>
+  </section>
+</main>
+
+<footer class="site-foot">
+  <span class="osd">© 2026 LUNCHTIME DEAD ・ ランチタイム・デッド</span>
+  <span class="osd"><a href="https://www.youtube.com/watch?v=mLlyXlstjaM" target="_blank" rel="noopener">YOUTUBE ↗</a> ・ <a href="mailto:miwa.730@icloud.com">CONTACT</a></span>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>

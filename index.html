@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dead">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Lunchtime Dead — city pop for the hour the city forgets</title>
+<meta name="description" content="Lunchtime Dead. Japanese city pop band. A bar past midnight — only the music speaks.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Shippori+Mincho+B1:wght@600;700;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ══════════ INTRO : tape insert ══════════ -->
+<div id="intro" aria-label="loading">
+  <canvas id="intro3d"></canvas>
+  <div class="static"></div>
+  <div class="intro-ui">
+    <div class="osd"><span id="introStatus">TRACKING</span> <span class="blink">▮</span> <span id="introPct">0%</span></div>
+    <button class="intro-enter" id="introEnter" data-i18n="intro.enter">PRESS PLAY ▶</button>
+  </div>
+  <button class="intro-sound" id="introSound" title="ambient sound">♪ SOUND ON</button>
+</div>
+
+<!-- film chrome -->
+<div class="letterbox letterbox--top">
+  <span class="osd">SIDE A ・ LUNCHTIME DEAD</span>
+  <span class="osd">TOKYO ・ JAPAN ・ 東京</span>
+  <span class="osd" id="clockOsd">00:00:00</span>
+</div>
+<div class="letterbox letterbox--bottom">
+  <span class="osd">MW-9000 ・ HI-FI STEREO</span>
+  <span class="osd osd--live"><span class="blink">●</span> REC</span>
+</div>
+<div class="grain" aria-hidden="true"></div>
+<div class="scanlines" aria-hidden="true"></div>
+<div class="tracking-bar" id="trackingBar" aria-hidden="true"></div>
+<canvas id="bgfx" aria-hidden="true"></canvas>
+
+<!-- ══════════ NAV ══════════ -->
+<header class="site-nav" id="siteNav">
+  <a class="nav-brand" href="#top">LUNCHTIME <em>DEAD</em></a>
+  <nav class="nav-links" id="navLinks">
+    <a href="#player" data-i18n="nav.player">PLAYER</a>
+    <a href="#clips" data-i18n="nav.clips">CLIPS</a>
+    <a href="members.html" data-i18n="nav.members">MEMBERS</a>
+  </nav>
+  <div class="nav-tools">
+    <button class="chip" id="langBtn" title="Language">EN / 日本語</button>
+    <button class="chip" id="themeBtn" title="Theme">夜 DEAD</button>
+    <button class="burger" id="burger" aria-label="menu"><span></span><span></span><span></span></button>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- ══════════ HERO ══════════ -->
+  <section class="hero">
+    <div class="hero-alley"></div>
+    <canvas id="rain" aria-hidden="true"></canvas>
+
+    <div class="hero-osd-top osd">
+      <div>CH-04 ・ <span data-i18n="hero.channel">MIDNIGHT BROADCAST</span></div>
+      <div style="margin-top:4px">1986 // 2026</div>
+    </div>
+    <div class="hero-osd-rec osd osd--live"><span class="blink">●</span> ON AIR</div>
+
+    <div class="sign-wrap">
+      <h1 class="neon-sign" aria-label="Lunchtime Dead">
+        <img class="neon-logo flicker" src="assets/logo-white.png" alt="Lunchtime Dead">
+      </h1>
+      <div class="sign-kana">ランチタイム・デッド</div>
+    </div>
+
+    <p class="hero-tagline">
+      <span data-i18n="hero.tag">City pop for the hour the city forgets.</span>
+      <span class="jp" data-i18n="hero.tag2">Punk hearts, neon veins, one long last order.</span>
+    </p>
+
+    <a class="hero-scroll osd" href="#player">▼ <span data-i18n="hero.scroll">INSERT TAPE</span></a>
+  </section>
+
+  <!-- ══════════ PLAYER ══════════ -->
+  <section class="scene" id="player">
+    <div class="scene-inner">
+      <header class="subtitle reveal">
+        <span class="osd tc">SCENE 01 ・ 00:12:04:11</span>
+        <h2 data-i18n="player.title">音楽だけが語りかける</h2>
+        <span class="sub-alt" data-i18n="player.sub">— only the music speaks —</span>
+      </header>
+
+      <div class="deck reveal" id="deck">
+        <div class="deck-head">
+          <span class="osd"><span class="power-led"></span> LUNCHTIME DEAD ・ <b>MUSIC PLAYER</b></span>
+          <span class="osd" id="deckStatus">STOP ■</span>
+        </div>
+
+        <div class="deck-body">
+          <div class="deck-screen">
+            <div class="now-cover">
+              <img class="art" id="nowArt" src="assets/cover.jpg" alt="cover">
+              <div class="now-meta">
+                <div class="osd" data-i18n="player.now">NOW PLAYING</div>
+                <div class="now-title" id="nowTitle">—</div>
+                <div class="now-artist" id="nowArtist">Lunchtime Dead</div>
+              </div>
+            </div>
+
+            <div class="vu-row" aria-hidden="true">
+              <div class="vu"><canvas id="vuL"></canvas><span class="vu-label">VU ・ L</span></div>
+              <div class="vu"><canvas id="vuR"></canvas><span class="vu-label">VU ・ R</span></div>
+            </div>
+            <div class="fx-stage" aria-hidden="true">
+              <canvas id="eq"></canvas>
+              <canvas id="fx"></canvas>
+              <span class="fx-label osd" id="fxLabel">FX ・ BARS</span>
+            </div>
+
+            <div class="seek">
+              <span class="osd" id="tCur">0:00</span>
+              <input type="range" id="seekBar" min="0" max="1000" value="0" aria-label="seek">
+              <span class="osd" id="tDur">0:00</span>
+            </div>
+
+            <div class="transport">
+              <button class="t-btn" id="btnPrev" title="prev"><svg viewBox="0 0 24 24"><path d="M6 5h2v14H6zM20 5v14L9 12z"/></svg></button>
+              <button class="t-btn main" id="btnPlay" title="play/pause"><svg viewBox="0 0 24 24" id="playIcon"><path d="M8 5v14l11-7z"/></svg></button>
+              <button class="t-btn" id="btnNext" title="next"><svg viewBox="0 0 24 24"><path d="M16 5h2v14h-2zM4 5v14l11-7z"/></svg></button>
+              <button class="t-btn" id="btnShuffle" title="shuffle"><svg viewBox="0 0 24 24"><path d="M10.6 9.2 7.5 6H2V4h6.3l3.7 3.8zM14.4 4H22v7.6l-2-2V7.4l-4.2 4.3-1.4-1.5L18.6 6h-2.8zM22 12.4V20h-7.6l2.2-2h3.4v-3.6zM2 18h5.5l11-11.3 1.4 1.4L8.3 20H2z"/></svg></button>
+              <button class="t-btn" id="btnRepeat" title="repeat"><svg viewBox="0 0 24 24"><path d="M7 7h10v3l4-4-4-4v3H5v6h2zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2z"/></svg></button>
+              <button class="t-btn t-fx" id="btnFx" title="visual fx">FX</button>
+              <div class="vol">
+                <span class="osd">VOL</span>
+                <input type="range" id="volBar" min="0" max="100" value="80" aria-label="volume">
+              </div>
+            </div>
+          </div>
+
+          <div class="deck-side">
+            <div class="reels">
+              <div class="reel"></div>
+              <span class="tape-count" id="tapeCount">000</span>
+              <div class="reel"></div>
+            </div>
+            <div class="playlist" id="playlist"></div>
+            <div class="deck-foot">
+              <label class="upload-btn" for="fileInput">＋ <span data-i18n="player.add">ADD TRACKS</span></label>
+              <input type="file" id="fileInput" accept="audio/*" multiple hidden>
+              <span class="deck-note" data-i18n="player.note">Tracks you add are stored in this browser and appear in the shared playlist for everyone visiting from this device.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ CLIPS ══════════ -->
+  <section class="scene" id="clips">
+    <div class="scene-inner">
+      <header class="subtitle reveal">
+        <span class="osd tc">SCENE 02 ・ 00:27:48:03</span>
+        <h2 data-i18n="clips.title">映像記録</h2>
+        <span class="sub-alt" data-i18n="clips.sub">— video archive · on air —</span>
+      </header>
+
+      <div class="tv-grid">
+        <figure class="tv reveal">
+          <div class="tv-screen">
+            <div class="tv-osd"><span class="rec">● REC</span> &nbsp;CH-04 ・ SP 0:00:00</div>
+            <iframe src="https://www.youtube.com/embed/mLlyXlstjaM" title="Lunchtime Dead — video clip"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              referrerpolicy="strict-origin-when-cross-origin"
+              allowfullscreen loading="lazy"></iframe>
+          </div>
+          <figcaption class="tv-caption">
+            <h3 data-i18n="clips.c1">Tsubame big joy — A city with Green</h3>
+            <span class="osd"><a href="https://www.youtube.com/watch?v=mLlyXlstjaM" target="_blank" rel="noopener" style="color:inherit">WATCH ON YOUTUBE ↗</a></span>
+          </figcaption>
+        </figure>
+
+        <div class="clip-slot reveal">
+          <span class="osd">NO SIGNAL ・ ノーシグナル</span>
+          <span data-i18n="clips.slot">The next tape is still rewinding. New clips land here.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ THE BAR / ABOUT ══════════ -->
+  <section class="scene" id="bar">
+    <div class="scene-inner">
+      <header class="subtitle reveal">
+        <span class="osd tc">SCENE 03 ・ 01:02:15:22</span>
+        <h2 data-i18n="bar.title">深夜のバー</h2>
+        <span class="sub-alt" data-i18n="bar.sub">— the bar past midnight —</span>
+      </header>
+
+      <blockquote class="bar-quote reveal">
+        <span data-i18n="bar.quote">煙草の煙が漂う薄暗い部屋で、誰かが静かに酒を飲んでいる。音楽だけが語りかける。</span>
+        <span class="en" data-i18n="bar.quoteEn">Smoke drifts through a dim room. Someone drinks in silence. Only the music speaks.</span>
+      </blockquote>
+
+      <div class="about-fact reveal">
+        <div class="fact"><div class="osd" data-i18n="bar.f1">FORMED</div><strong>2024 ・ Tokyo</strong></div>
+        <div class="fact"><div class="osd" data-i18n="bar.f2">SOUND</div><strong data-i18n="bar.f2v">City Pop × Punk × Nocturne Jazz</strong></div>
+        <div class="fact"><div class="osd" data-i18n="bar.f3">LAST ORDER</div><strong data-i18n="bar.f3v">Never</strong></div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-foot">
+  <span class="osd">© 2026 LUNCHTIME DEAD ・ ランチタイム・デッド</span>
+  <span class="osd"><a href="https://www.youtube.com/watch?v=mLlyXlstjaM" target="_blank" rel="noopener">YOUTUBE ↗</a> ・ <a href="mailto:miwa.730@icloud.com">CONTACT</a></span>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="vendor/SVGLoader.js"></script>
+<script src="assets/logo-svg.js"></script>
+<script src="intro.js"></script>
+<script src="visualizer.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
