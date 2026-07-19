@@ -330,6 +330,13 @@
   // safety: never trap the visitor
   setTimeout(() => { if (!ready) { target = 100; } }, 9000);
 
+  /* cursor parallax while loading */
+  let pTargX = 0, pTargY = 0, pSmX = 0, pSmY = 0;
+  window.addEventListener('pointermove', e => {
+    pTargX = (e.clientX / innerWidth) * 2 - 1;
+    pTargY = (e.clientY / innerHeight) * 2 - 1;
+  }, { passive: true });
+
   /* --- loop --- */
   let raf;
   function loop(now) {
@@ -340,17 +347,23 @@
     progress += (target - progress) * 0.05;
     pctEl.textContent = Math.round(progress) + '%';
 
+    const barEl = document.getElementById('introBar');
+    if (barEl) barEl.style.width = Math.round(progress) + '%';
+
     if (progress > 99 && !ready) {
       ready = true;
       statusEl.textContent = 'PLAY';
       enterBtn.classList.add('ready');
+      intro.classList.add('ready');
     }
 
-    // camera: slow dolly toward the sign + gentle sway
+    // camera: slow dolly toward the sign + gentle sway + cursor drift
+    pSmX += (pTargX - pSmX) * 0.04;
+    pSmY += (pTargY - pSmY) * 0.04;
     const dolly = Math.min(10.5, t * 1.15);
     camera.position.z = 30 - dolly - Math.min(6, progress / 18);
-    camera.position.x = Math.sin(t * 0.35) * 0.55;
-    camera.position.y = 0.4 + Math.sin(t * 0.22) * 0.25;
+    camera.position.x = Math.sin(t * 0.35) * 0.55 + pSmX * 1.1;
+    camera.position.y = 0.4 + Math.sin(t * 0.22) * 0.25 - pSmY * 0.6;
     if (flyStart) {
       // accelerating rush straight into the neon
       const fp = Math.min(1, (now - flyStart) / 640);

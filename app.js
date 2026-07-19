@@ -194,6 +194,35 @@
   }), { threshold: 0.12 });
   $$('.reveal').forEach(el => io.observe(el));
 
+  /* interactive hero: parallax stage + neon lantern following the cursor */
+  (function heroInteractive() {
+    const hero = $('.hero'), avant = $('.hero-avant'),
+          signWrap = $('.sign-wrap'), heroGlow = $('#heroGlow');
+    if (!hero || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    let tx = 0, ty = 0, sx = 0, sy = 0;
+    let gx = 0, gy = 0, gtx = 0, gty = 0, glowSeen = false;
+    hero.addEventListener('pointermove', e => {
+      const r = hero.getBoundingClientRect();
+      tx = ((e.clientX - r.left) / r.width) * 2 - 1;
+      ty = ((e.clientY - r.top) / r.height) * 2 - 1;
+      gtx = e.clientX - r.left; gty = e.clientY - r.top;
+      if (!glowSeen) { gx = gtx; gy = gty; glowSeen = true; }
+    });
+    hero.addEventListener('pointerleave', () => { tx = 0; ty = 0; });
+    (function heroLoop() {
+      requestAnimationFrame(heroLoop);
+      sx += (tx - sx) * 0.05; sy += (ty - sy) * 0.05;
+      gx += (gtx - gx) * 0.1; gy += (gty - gy) * 0.1;
+      if (avant) avant.style.transform = `translate(${sx * -16}px, ${sy * -9}px)`;
+      if (signWrap) signWrap.style.transform =
+        `perspective(900px) rotateY(${sx * 5}deg) rotateX(${sy * -3.5}deg) translate(${sx * 9}px, ${sy * 5}px)`;
+      if (heroGlow && glowSeen) {
+        heroGlow.style.left = gx + 'px';
+        heroGlow.style.top = gy + 'px';
+      }
+    })();
+  })();
+
   /* rain canvas on hero (2D, cheap) */
   const rainC = $('#rain');
   if (rainC) {
