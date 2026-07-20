@@ -8,6 +8,7 @@
   const esc = s => { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; };
   // some networks/browsers stall — never let a Supabase call block the page
   const withTimeout = (p, ms) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]);
+  const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
 
   /* ─────────── i18n ─────────── */
   const DICT = {
@@ -307,7 +308,6 @@
         note: '【MELTING AWAY】 with サマーウーフ ・ OrbisSoundscape ・ Galapagos ・ 赤い花\nOPEN 18:30 ・ START 19:00 ・ ¥3,000 ADV / ¥3,500 DOOR (+1D)',
         ticket_url: 'https://www.instagram.com/lunchtimedead/', ticket_label: 'TICKETS ▸ DM', is_past: false
       }];
-      const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
       function renderGigs(rows) {
         gigList.innerHTML = rows.map(g => {
           const d = new Date(g.date + 'T00:00:00');
@@ -389,12 +389,19 @@
         wallGrid.querySelectorAll('.postcard').forEach(el => el.remove());
         if (!rows || !rows.length) { if (empty) empty.style.display = ''; return; }
         if (empty) empty.style.display = 'none';
-        wallGrid.insertAdjacentHTML('beforeend', rows.map(p => `
+        wallGrid.insertAdjacentHTML('beforeend', rows.map(p => {
+          const d = new Date(p.created_at);
+          const dateStr = `${MONTHS[d.getMonth()]} ${String(d.getDate()).padStart(2, '0')}, ${d.getFullYear()}`;
+          return `
           <article class="postcard reveal">
             ${p.photo_url ? `<img class="postcard-photo" src="${esc(p.photo_url)}" alt="">` : ''}
             <p class="postcard-msg">${esc(p.message)}</p>
-            <span class="postcard-name osd">— ${esc(p.name || 'Anonymous')}</span>
-          </article>`).join(''));
+            <div class="postcard-foot">
+              <span class="postcard-name osd">— ${esc(p.name || 'Anonymous')}</span>
+              <span class="postcard-date osd">${dateStr}</span>
+            </div>
+          </article>`;
+        }).join(''));
         $$('.postcard.reveal', wallGrid).forEach(el => io.observe(el));
       }
       const loadWall = () => fetchRows('postcards', 'created_at', { ascending: false }).then(renderWall);

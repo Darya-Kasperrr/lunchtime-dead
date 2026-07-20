@@ -1010,7 +1010,9 @@ a.gig-status:hover{color:var(--bg);background:var(--accent);border-color:var(--a
 .postcard:hover{transform:translateY(-4px);box-shadow:0 40px 80px -35px rgba(var(--sign-glow),.4)}
 .postcard-photo{width:100%;border-radius:3px;aspect-ratio:4/3;object-fit:cover}
 .postcard-msg{font-size:14px;line-height:1.6;color:var(--fg)}
-.postcard-name{font-size:10.5px;color:var(--fg-dim);align-self:flex-end}
+.postcard-foot{display:flex;align-items:baseline;justify-content:space-between;gap:10px;align-self:stretch}
+.postcard-name{font-size:10.5px;color:var(--fg-dim);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.postcard-date{font-size:9.5px;color:var(--fg-dim);opacity:.7;flex:none}
 
 /* ---------- postcard sticky fab + modal ---------- */
 .postcard-fab{
