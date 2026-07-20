@@ -5,6 +5,9 @@
   'use strict';
   const $ = (s, r) => (r || document).querySelector(s);
   const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
+  const esc = s => { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; };
+  // some networks/browsers stall — never let a Supabase call block the page
+  const withTimeout = (p, ms) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]);
 
   /* ─────────── i18n ─────────── */
   const DICT = {
@@ -18,17 +21,11 @@
       'hero.neon': 'NEON',
       'player.title': 'Only the music speaks',
       'player.sub': '— 音楽だけが語りかける —',
-      'player.now': 'NOW PLAYING', 'player.add': 'ADD TRACKS',
-      'player.note': 'Tracks you add are saved in this browser and play for everyone who opens the site here. Publish the site to share them with the world.',
+      'player.now': 'NOW PLAYING',
       'clips.title': 'Video archive', 'clips.sub': '— 映像記録 ・ オンエア —',
-      'clips.c1': 'Tsubame big joy — A city with Green', 'clips.c1sub': 'OFFICIAL VIDEO ・ 2026',
       'clips.slot': 'The next tape is still rewinding. New clips land here.',
       'nav.live': 'LIVE',
       'live.title': 'Live schedule', 'live.sub': '— ライブ日程 —',
-      'live.tickets': 'TICKETS', 'live.soon': 'COMING SOON', 'live.ended': 'ENDED',
-      'live.g1': 'One-man show — first full set of the new songs.',
-      'live.g2': 'Split night with friends — late set, last train optional.',
-      'live.g3': 'Debut of «Tsubame big joy» — thank you for singing along.',
       'bar.f1': 'FORMED', 'bar.f2': 'SOUND', 'bar.f2v': 'City Pop × Punk × Nocturne Jazz',
       'bar.f3': 'LAST ORDER', 'bar.f3v': 'Never',
       'cast.title': 'Cast', 'cast.sub': '— キャスト ・ 出演 —',
@@ -40,7 +37,19 @@
       'cast.back': '◀ BACK TO THE BAR',
       'cast.open': 'LINER NOTES',
       'pl.empty': 'No tapes on the shelf yet. Add the first track.',
-      'deck.stop': 'STOP ■', 'deck.play': 'PLAY ▶', 'deck.pause': 'PAUSE ❚❚'
+      'deck.stop': 'STOP ■', 'deck.play': 'PLAY ▶', 'deck.pause': 'PAUSE ❚❚',
+      'nav.wall': 'WALL',
+      'wall.title': 'On-air postcards', 'wall.sub': '— messages from listeners —',
+      'wall.empty': 'No postcards yet — be the first to write in.',
+      'wall.cta': 'LEAVE A POSTCARD',
+      'wall.formTitle': 'Leave a postcard',
+      'wall.messagePh': 'Say something to the band…',
+      'wall.photoLabel': 'Were you at a show? Attach a photo (optional — goes through a quick review)',
+      'wall.submit': 'SEND',
+      'wall.unavailable': 'Not available right now — try again later.',
+      'wall.sending': 'Sending…',
+      'wall.pending': 'Thanks — it’ll appear once reviewed.',
+      'wall.posted': 'Posted!'
     },
     ja: {
       'intro.enter': '再生 ▶',
@@ -52,17 +61,11 @@
       'hero.neon': 'ネオン',
       'player.title': '音楽だけが語りかける',
       'player.sub': '— only the music speaks —',
-      'player.now': '再生中', 'player.add': '曲を追加',
-      'player.note': '追加した曲はこのブラウザに保存され、ここでサイトを開く全員に再生されます。世界と共有するにはサイトを公開してください。',
+      'player.now': '再生中',
       'clips.title': '映像記録', 'clips.sub': '— video archive ・ on air —',
-      'clips.c1': 'ツバメ・ビッグ・ジョイ — 緑のある街', 'clips.c1sub': '公式ビデオ ・ 2026',
       'clips.slot': '次のテープは巻き戻し中。新しいクリップはここに届く。',
       'nav.live': 'ライブ',
       'live.title': 'ライブ日程', 'live.sub': '— live schedule —',
-      'live.tickets': 'チケット', 'live.soon': '近日発表', 'live.ended': '終了',
-      'live.g1': 'ワンマンライブ — 新曲フルセット初披露。',
-      'live.g2': '仲間とのスプリット — 深夜セット、終電は任意。',
-      'live.g3': '「ツバメ・ビッグ・ジョイ」初披露 — 歌ってくれてありがとう。',
       'bar.f1': '結成', 'bar.f2': 'サウンド', 'bar.f2v': 'シティ・ポップ × パンク × 夜想ジャズ',
       'bar.f3': 'ラストオーダー', 'bar.f3v': '永遠にない',
       'cast.title': 'キャスト', 'cast.sub': '— cast ・ starring —',
@@ -74,7 +77,19 @@
       'cast.back': '◀ バーに戻る',
       'cast.open': 'ライナーノーツ',
       'pl.empty': '棚にテープがまだない。最初の曲を追加して。',
-      'deck.stop': '停止 ■', 'deck.play': '再生 ▶', 'deck.pause': '一時停止 ❚❚'
+      'deck.stop': '停止 ■', 'deck.play': '再生 ▶', 'deck.pause': '一時停止 ❚❚',
+      'nav.wall': 'ウォール',
+      'wall.title': 'リスナーからの絵はがき', 'wall.sub': '— on-air postcards —',
+      'wall.empty': 'まだ絵はがきはありません。最初の一枚を書いてみて。',
+      'wall.cta': '絵はがきを送る',
+      'wall.formTitle': '絵はがきを送る',
+      'wall.messagePh': 'バンドへのメッセージ…',
+      'wall.photoLabel': 'ライブに参加した？写真を添付できます（任意・簡単な確認後に公開）',
+      'wall.submit': '送信',
+      'wall.unavailable': '現在ご利用いただけません。後でもう一度お試しください。',
+      'wall.sending': '送信中…',
+      'wall.pending': 'ありがとうございます — 確認後に公開されます。',
+      'wall.posted': '投稿しました！'
     }
   };
   let lang = localStorage.getItem('ltd-lang') || 'en';
@@ -82,7 +97,12 @@
 
   function applyLang() {
     document.documentElement.lang = lang;
-    $$('[data-i18n]').forEach(el => { const k = el.dataset.i18n; if (t(k)) el.textContent = t(k); });
+    $$('[data-i18n]').forEach(el => {
+      const k = el.dataset.i18n;
+      if (!t(k)) return;
+      const attr = el.dataset.i18nAttr;
+      if (attr) el.setAttribute(attr, t(k)); else el.textContent = t(k);
+    });
     const lb = $('#langBtn'); if (lb) lb.textContent = lang === 'en' ? 'EN / 日本語' : '日本語 / EN';
     if (window.renderPlaylist) window.renderPlaylist();
   }
@@ -139,11 +159,32 @@
   const nav = $('#siteNav');
   addEventListener('scroll', () => nav && nav.classList.toggle('scrolled', scrollY > 40), { passive: true });
   const burger = $('#burger'), navLinks = $('#navLinks');
+  // iOS/Android: a fixed full-screen menu opened mid-momentum-scroll can render
+  // half-painted and "stick" until the scroll settles — lock the body in place instead.
+  let navScrollY = 0;
+  function lockScroll() {
+    navScrollY = scrollY;
+    document.body.style.position = 'fixed';
+    document.body.style.top = -navScrollY + 'px';
+    document.body.style.width = '100%';
+  }
+  function unlockScroll() {
+    document.body.style.position = '';
+    document.body.style.top = '';
+    document.body.style.width = '';
+    scrollTo(0, navScrollY);
+  }
+  function setNavOpen(open) {
+    burger.classList.toggle('open', open);
+    navLinks.classList.toggle('open', open);
+    document.body.classList.toggle('nav-open', open);
+    if (open) lockScroll(); else unlockScroll();
+  }
   if (burger) burger.addEventListener('click', () => {
-    burger.classList.toggle('open'); navLinks.classList.toggle('open');
+    setNavOpen(!burger.classList.contains('open'));
   });
   $$('#navLinks a').forEach(a => a.addEventListener('click', () => {
-    burger && burger.classList.remove('open'); navLinks && navLinks.classList.remove('open');
+    burger && setNavOpen(false);
   }));
 
   /* cast cards — open the record sleeve, with a vinyl "shhk" sound */
@@ -243,6 +284,182 @@
     if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
   }), { threshold: 0.12 });
   $$('.reveal').forEach(el => io.observe(el));
+
+  /* ─────────── CMS-backed content: gigs, clips, hero video ───────────
+     Reads straight from Supabase (public, RLS-protected). Falls back to
+     today's static content if Supabase isn't configured or unreachable,
+     so the site never goes blank. Writes happen only from admin.html. */
+  (function cms() {
+    async function fetchRows(table, order, opts) {
+      if (!window.LTDSupabase || !window.LTDSupabase.client) return null;
+      try {
+        const { data, error } = await withTimeout(
+          window.LTDSupabase.client.from(table).select('*').order(order, opts), 2500);
+        return (!error && data && data.length) ? data : null;
+      } catch (e) { return null; }
+    }
+
+    /* — gigs — */
+    const gigList = $('#gigList');
+    if (gigList) {
+      const FALLBACK_GIGS = [{
+        date: '2026-08-15', venue: 'U.F.O.CLUB', city: 'TOKYO ・ 東高円寺',
+        note: '【MELTING AWAY】 with サマーウーフ ・ OrbisSoundscape ・ Galapagos ・ 赤い花\nOPEN 18:30 ・ START 19:00 ・ ¥3,000 ADV / ¥3,500 DOOR (+1D)',
+        ticket_url: 'https://www.instagram.com/lunchtimedead/', ticket_label: 'TICKETS ▸ DM', is_past: false
+      }];
+      const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+      function renderGigs(rows) {
+        gigList.innerHTML = rows.map(g => {
+          const d = new Date(g.date + 'T00:00:00');
+          const chip = g.ticket_url
+            ? `<a class="chip gig-status" href="${esc(g.ticket_url)}" target="_blank" rel="noopener">${esc(g.ticket_label)}</a>`
+            : `<span class="chip gig-status">${esc(g.ticket_label)}</span>`;
+          return `
+            <article class="gig reveal${g.is_past ? ' past' : ''}">
+              <div class="gig-date"><span class="d">${String(d.getDate()).padStart(2, '0')}</span><span class="m">${MONTHS[d.getMonth()]} ${d.getFullYear()}</span></div>
+              <div class="gig-info">
+                <h3>${esc(g.venue)}</h3>
+                <span class="gig-city osd">${esc(g.city)}</span>
+                <p class="gig-note">${esc(g.note).replace(/\n/g, '<br>')}</p>
+              </div>
+              ${chip}
+            </article>`;
+        }).join('');
+        $$('.gig.reveal', gigList).forEach(el => io.observe(el));
+      }
+      fetchRows('gigs', 'position').then(rows => renderGigs(rows || FALLBACK_GIGS));
+    }
+
+    /* — clips — */
+    const clipsGrid = $('#clipsGrid');
+    if (clipsGrid) {
+      const FALLBACK_CLIPS = [{
+        title: 'Tsubame big joy — A city with Green',
+        youtube_url: 'https://www.youtube.com/embed/mLlyXlstjaM',
+        watch_label: 'WATCH ON YOUTUBE ↗'
+      }];
+      function watchUrl(embedUrl) {
+        const m = embedUrl.match(/embed\/([^?&]+)/);
+        return m ? `https://www.youtube.com/watch?v=${m[1]}` : embedUrl;
+      }
+      function renderClips(rows) {
+        const figures = rows.map(c => `
+          <figure class="tv reveal">
+            <div class="tv-screen">
+              <div class="tv-osd"><span class="rec">● REC</span> &nbsp;CH-04 ・ SP 0:00:00</div>
+              <iframe src="${esc(c.youtube_url)}" title="${esc(c.title)}"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                referrerpolicy="strict-origin-when-cross-origin"
+                allowfullscreen loading="lazy"></iframe>
+            </div>
+            <figcaption class="tv-caption">
+              <h3>${esc(c.title)}</h3>
+              <span class="osd"><a href="${esc(watchUrl(c.youtube_url))}" target="_blank" rel="noopener" style="color:inherit">${esc(c.watch_label)}</a></span>
+            </figcaption>
+          </figure>`).join('');
+        clipsGrid.insertAdjacentHTML('afterbegin', figures);
+        $$('.tv.reveal', clipsGrid).forEach(el => io.observe(el));
+      }
+      fetchRows('clips', 'position').then(rows => renderClips(rows || FALLBACK_CLIPS));
+    }
+
+    /* — hero video override — */
+    const heroVideo = $('.hero-bgvideo');
+    if (heroVideo && window.LTDSupabase && window.LTDSupabase.client) {
+      withTimeout(
+        window.LTDSupabase.client.from('site_settings').select('hero_video_url,hero_poster_url').eq('id', 1).maybeSingle(),
+        2500
+      ).then(({ data, error }) => {
+        if (error || !data) return;
+        if (data.hero_video_url) {
+          const src = document.createElement('source');
+          src.src = data.hero_video_url; src.type = 'video/mp4';
+          heroVideo.prepend(src);
+          heroVideo.load();
+        }
+        if (data.hero_poster_url) heroVideo.poster = data.hero_poster_url;
+      }).catch(() => {});
+    }
+
+    /* — wall: approved postcards (public read; no fallback content, it's UGC) — */
+    const wallGrid = $('#wallGrid');
+    if (wallGrid) {
+      function renderWall(rows) {
+        const empty = $('#wallEmpty');
+        wallGrid.querySelectorAll('.postcard').forEach(el => el.remove());
+        if (!rows || !rows.length) { if (empty) empty.style.display = ''; return; }
+        if (empty) empty.style.display = 'none';
+        wallGrid.insertAdjacentHTML('beforeend', rows.map(p => `
+          <article class="postcard reveal">
+            ${p.photo_url ? `<img class="postcard-photo" src="${esc(p.photo_url)}" alt="">` : ''}
+            <p class="postcard-msg">${esc(p.message)}</p>
+            <span class="postcard-name osd">— ${esc(p.name || 'Anonymous')}</span>
+          </article>`).join(''));
+        $$('.postcard.reveal', wallGrid).forEach(el => io.observe(el));
+      }
+      const loadWall = () => fetchRows('postcards', 'created_at', { ascending: false }).then(renderWall);
+      loadWall();
+      window.LTDLoadWall = loadWall;
+    }
+  })();
+
+  /* ─────────── postcard submission modal ─────────── */
+  (function postcardForm() {
+    const fab = $('#postcardFab'), modal = $('#postcardModal');
+    if (!fab || !modal) return;
+    const backdrop = $('#postcardBackdrop'), closeBtn = $('#postcardClose');
+    const msgEl = $('#pcMessage'), countEl = $('#pcCount'), statusEl = $('#pcStatus');
+
+    function openModal() {
+      modal.classList.add('open');
+      modal.setAttribute('aria-hidden', 'false');
+      msgEl.focus();
+    }
+    function closeModal() {
+      modal.classList.remove('open');
+      modal.setAttribute('aria-hidden', 'true');
+    }
+    fab.addEventListener('click', openModal);
+    backdrop.addEventListener('click', closeModal);
+    closeBtn.addEventListener('click', closeModal);
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && modal.classList.contains('open')) closeModal();
+    });
+    msgEl.addEventListener('input', () => { countEl.textContent = msgEl.value.length; });
+
+    $('#postcardForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      if ($('#pcWebsite').value) return; // honeypot tripped — silently drop
+      const message = msgEl.value.trim();
+      if (!message) return;
+      if (!window.LTDSupabase || !window.LTDSupabase.client) {
+        statusEl.textContent = t('wall.unavailable');
+        return;
+      }
+      const client = window.LTDSupabase.client;
+      const photoFile = $('#pcPhoto').files[0];
+      statusEl.textContent = t('wall.sending');
+      try {
+        let photo_url = null, status = 'approved';
+        if (photoFile) {
+          const path = Date.now() + '-' + photoFile.name.replace(/[^a-zA-Z0-9.\-_]/g, '_');
+          const { error: upErr } = await client.storage.from('postcard-photos').upload(path, photoFile);
+          if (upErr) throw upErr;
+          photo_url = client.storage.from('postcard-photos').getPublicUrl(path).data.publicUrl;
+          status = 'pending';
+        }
+        const { error } = await client.from('postcards').insert({
+          name: $('#pcName').value.trim() || null, message, photo_url, status
+        });
+        if (error) throw error;
+        statusEl.textContent = status === 'pending' ? t('wall.pending') : t('wall.posted');
+        e.target.reset();
+        countEl.textContent = '0';
+        if (status === 'approved' && window.LTDLoadWall) window.LTDLoadWall();
+        setTimeout(closeModal, 1800);
+      } catch (err) { statusEl.textContent = 'Error: ' + err.message; }
+    });
+  })();
 
   /* interactive hero: parallax stage + neon lantern following the cursor */
   (function heroInteractive() {
@@ -428,53 +645,29 @@
     const audio = new Audio();
     audio.preload = 'metadata';
 
-    const DEFAULT_TRACKS = [{
+    // used if Supabase is unreachable/unconfigured — the deck should never be silent
+    const FALLBACK_TRACKS = [{
       id: 'default-tsubame',
       name: 'Tsubame big joy — A city with Green',
-      url: 'assets/tsubame.mp3',
-      builtin: true
+      url: 'assets/tsubame.mp3'
     }, {
       id: 'default-flying-girl',
       name: 'Flying Girl',
       url: 'assets/Lunchtime%20Dead%20-%20Flying%20Girl.mp3',
-      art: 'assets/unnamed.png',
-      builtin: true
+      art: 'assets/unnamed.png'
     }];
 
     let tracks = [];
     let cur = 0, shuffle = false, repeat = false, playing = false;
 
-    /* — IndexedDB for user uploads — */
-    const DB = 'ltd-tapes';
-    // some browsers stall IndexedDB on local files — never let it block the deck
-    function withTimeout(p, ms) {
-      return Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('idb-timeout')), ms))]);
-    }
-    function idb() {
-      return new Promise((res, rej) => {
-        const r = indexedDB.open(DB, 1);
-        r.onupgradeneeded = () => r.result.createObjectStore('tracks', { keyPath: 'id' });
-        r.onsuccess = () => res(r.result);
-        r.onerror = () => rej(r.error);
-      });
-    }
-    async function dbAll() {
+    async function fetchTracks() {
+      if (!window.LTDSupabase || !window.LTDSupabase.client) return FALLBACK_TRACKS;
       try {
-        const d = await idb();
-        return new Promise(res => {
-          const q = d.transaction('tracks').objectStore('tracks').getAll();
-          q.onsuccess = () => res(q.result || []);
-          q.onerror = () => res([]);
-        });
-      } catch (e) { return []; }
-    }
-    async function dbPut(rec) {
-      const d = await idb();
-      d.transaction('tracks', 'readwrite').objectStore('tracks').put(rec);
-    }
-    async function dbDel(id) {
-      const d = await idb();
-      d.transaction('tracks', 'readwrite').objectStore('tracks').delete(id);
+        const { data, error } = await withTimeout(
+          window.LTDSupabase.client.from('tracks').select('*').order('position'), 2500);
+        if (error || !data || !data.length) return FALLBACK_TRACKS;
+        return data.map(r => ({ id: r.id, name: r.name, url: r.audio_url, art: r.art_url || undefined }));
+      } catch (e) { return FALLBACK_TRACKS; }
     }
 
     /* — web audio: analyser drives everything — */
@@ -661,27 +854,11 @@
         row.innerHTML = `
           <span class="pl-num">${String(i + 1).padStart(2, '0')}</span>
           <span class="pl-name">${esc(tr.name)}</span>
-          <span class="pl-time">${tr.dur ? fmt(tr.dur) : '--:--'}</span>
-          ${tr.builtin ? '' : '<button class="pl-del" title="remove">✕</button>'}`;
-        row.addEventListener('click', e => {
-          if (e.target.classList.contains('pl-del')) return;
-          load(i, true);
-        });
-        const del = row.querySelector('.pl-del');
-        if (del) del.addEventListener('click', async () => {
-          try { await withTimeout(dbDel(tr.id), 1500); } catch (e) {}
-          URL.revokeObjectURL(tr.url);
-          const wasCur = i === cur;
-          tracks.splice(i, 1);
-          if (cur >= tracks.length) cur = 0; else if (i < cur) cur--;
-          if (wasCur && tracks.length) load(cur, playing);
-          if (!tracks.length) { audio.pause(); setPlaying(false); }
-          renderPlaylist();
-        });
+          <span class="pl-time">${tr.dur ? fmt(tr.dur) : '--:--'}</span>`;
+        row.addEventListener('click', () => load(i, true));
         plEl.appendChild(row);
       });
     }
-    function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
     function fmt(s) { s = Math.max(0, s | 0); return (s / 60 | 0) + ':' + String(s % 60).padStart(2, '0'); }
 
     /* — transport — */
@@ -813,38 +990,16 @@
     });
     audio.volume = 0.8; volBar.style.setProperty('--fill', '80%');
 
-    /* — uploads — */
-    $('#fileInput').addEventListener('change', async e => {
-      const files = Array.from(e.target.files || []);
-      let added = 0;
-      for (const f of files) {
-        const id = 'u-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7);
-        const rec = { id, name: f.name.replace(/\.[^.]+$/, ''), blob: f };
-        // persistence is best-effort: even if IndexedDB is unavailable
-        // (some browsers block it for local files), the track still plays now
-        try { await withTimeout(dbPut(rec), 1500); } catch (err) { /* in-memory only */ }
-        tracks.push({ id, name: rec.name, url: URL.createObjectURL(f) });
-        added++;
-      }
-      e.target.value = '';
-      if (added) {
-        renderPlaylist();
-        glitch();
-        // jump to the first newly added tape and play it
-        load(tracks.length - added, true);
-      }
-    });
-
-    /* — boot: default tape first, storage merges in when (if) it answers — */
+    /* — boot: play the fallback tape immediately, swap in the shared playlist once Supabase answers — */
     (async function boot() {
-      tracks = DEFAULT_TRACKS.slice();
+      tracks = FALLBACK_TRACKS.slice();
       load(0, false);
       nowTitle.textContent = tracks[0].name;
-      try {
-        const saved = await withTimeout(dbAll(), 2500);
-        saved.forEach(r => tracks.push({ id: r.id, name: r.name, url: URL.createObjectURL(r.blob) }));
-        if (saved.length) renderPlaylist();
-      } catch (e) { /* storage unavailable — deck works anyway */ }
+      const fetched = await fetchTracks();
+      if (fetched !== FALLBACK_TRACKS) {
+        tracks = fetched;
+        renderPlaylist();
+      }
     })();
 
     // start music softly after the intro if the user pressed play there

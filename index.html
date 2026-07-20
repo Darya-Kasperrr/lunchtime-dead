@@ -49,6 +49,7 @@
     <a href="#clips" data-i18n="nav.clips">CLIPS</a>
     <a href="#live" data-i18n="nav.live">LIVE</a>
     <a href="#members" data-i18n="nav.members">MEMBERS</a>
+    <a href="#wall" data-i18n="nav.wall">WALL</a>
   </nav>
   <div class="nav-tools">
     <button class="chip" id="langBtn" title="Language">EN / 日本語</button>
@@ -168,11 +169,6 @@
               <div class="reel"></div>
             </div>
             <div class="playlist" id="playlist"></div>
-            <div class="deck-foot">
-              <label class="upload-btn" for="fileInput">＋ <span data-i18n="player.add">ADD TRACKS</span></label>
-              <input type="file" id="fileInput" accept="audio/*" multiple hidden>
-              <span class="deck-note" data-i18n="player.note">Tracks you add are stored in this browser and appear in the shared playlist for everyone visiting from this device.</span>
-            </div>
           </div>
         </div>
       </div>
@@ -188,21 +184,7 @@
         <span class="sub-alt" data-i18n="clips.sub">— video archive · on air —</span>
       </header>
 
-      <div class="tv-grid">
-        <figure class="tv reveal">
-          <div class="tv-screen">
-            <div class="tv-osd"><span class="rec">● REC</span> &nbsp;CH-04 ・ SP 0:00:00</div>
-            <iframe src="https://www.youtube.com/embed/mLlyXlstjaM" title="Lunchtime Dead — video clip"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              referrerpolicy="strict-origin-when-cross-origin"
-              allowfullscreen loading="lazy"></iframe>
-          </div>
-          <figcaption class="tv-caption">
-            <h3 data-i18n="clips.c1">Tsubame big joy — A city with Green</h3>
-            <span class="osd"><a href="https://www.youtube.com/watch?v=mLlyXlstjaM" target="_blank" rel="noopener" style="color:inherit">WATCH ON YOUTUBE ↗</a></span>
-          </figcaption>
-        </figure>
-
+      <div class="tv-grid" id="clipsGrid">
         <div class="clip-slot reveal">
           <span class="osd">NO SIGNAL ・ ノーシグナル</span>
           <span data-i18n="clips.slot">The next tape is still rewinding. New clips land here.</span>
@@ -220,37 +202,7 @@
         <span class="sub-alt" data-i18n="live.sub">— live schedule —</span>
       </header>
 
-      <div class="gig-list">
-        <article class="gig reveal">
-          <div class="gig-date"><span class="d">14</span><span class="m">AUG 2026</span></div>
-          <div class="gig-info">
-            <h3>Shimokitazawa SHELTER</h3>
-            <span class="gig-city osd">TOKYO ・ 下北沢</span>
-            <p class="gig-note" data-i18n="live.g1">One-man show — first full set of the new songs.</p>
-          </div>
-          <a class="chip gig-status" href="mailto:miwa.730@icloud.com" data-i18n="live.tickets">TICKETS</a>
-        </article>
-
-        <article class="gig reveal">
-          <div class="gig-date"><span class="d">05</span><span class="m">SEP 2026</span></div>
-          <div class="gig-info">
-            <h3>Koenji U.F.O. CLUB</h3>
-            <span class="gig-city osd">TOKYO ・ 高円寺</span>
-            <p class="gig-note" data-i18n="live.g2">Split night with friends — late set, last train optional.</p>
-          </div>
-          <span class="chip gig-status" data-i18n="live.soon">COMING SOON</span>
-        </article>
-
-        <article class="gig past reveal">
-          <div class="gig-date"><span class="d">21</span><span class="m">JUN 2026</span></div>
-          <div class="gig-info">
-            <h3>Shinjuku LOFT</h3>
-            <span class="gig-city osd">TOKYO ・ 新宿</span>
-            <p class="gig-note" data-i18n="live.g3">Debut of «Tsubame big joy» — thank you for singing along.</p>
-          </div>
-          <span class="chip gig-status" data-i18n="live.ended">ENDED</span>
-        </article>
-      </div>
+      <div class="gig-list" id="gigList"></div>
 
       <div class="about-fact reveal">
         <div class="fact"><div class="osd" data-i18n="bar.f1">FORMED</div><strong>2025 ・ Tokyo</strong></div>
@@ -331,6 +283,21 @@
     </div>
   </section>
 
+  <!-- ══════════ WALL — fan postcards ══════════ -->
+  <section class="scene" id="wall">
+    <div class="scene-inner">
+      <header class="subtitle reveal">
+        <span class="osd tc">SCENE 05 ・ 02:10:30:00</span>
+        <h2 data-i18n="wall.title">On-air postcards</h2>
+        <span class="sub-alt" data-i18n="wall.sub">— リスナーからの絵はがき —</span>
+      </header>
+
+      <div class="wall-grid" id="wallGrid">
+        <div class="wall-empty" id="wallEmpty" data-i18n="wall.empty">No postcards yet — be the first to write in.</div>
+      </div>
+    </div>
+  </section>
+
 </main>
 
 <!-- ══════════ MINI PLAYER (persists while scrolling away from the deck) ══════════ -->
@@ -348,6 +315,41 @@
   <div class="mp-seek" aria-hidden="true"><i class="mp-seek-fill" id="miniSeekFill"></i></div>
 </div>
 
+<!-- ══════════ CONNECT (sticky) ══════════ -->
+<div class="connect-fab" id="connectFab">
+  <a class="connect-pill" href="https://www.instagram.com/lunchtimedead/" target="_blank" rel="noopener" title="Instagram">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2c-2.7 0-3 .01-4.05.06-1.05.05-1.77.22-2.4.46a4.85 4.85 0 00-1.75 1.14 4.85 4.85 0 00-1.14 1.75c-.24.63-.41 1.35-.46 2.4C2.01 9 2 9 2 12s.01 3 .06 4.05c.05 1.05.22 1.77.46 2.4.25.65.6 1.2 1.14 1.75.55.55 1.09.9 1.75 1.14.63.24 1.35.41 2.4.46C9 21.99 9 22 12 22s3-.01 4.05-.06c1.05-.05 1.77-.22 2.4-.46a4.85 4.85 0 001.75-1.14 4.85 4.85 0 001.14-1.75c.24-.63.41-1.35.46-2.4.05-1.05.06-1.35.06-4.05s-.01-3-.06-4.05c-.05-1.05-.22-1.77-.46-2.4a4.85 4.85 0 00-1.14-1.75 4.85 4.85 0 00-1.75-1.14c-.63-.24-1.35-.41-2.4-.46C15 2.01 15 2 12 2zm0 1.8c2.65 0 2.97.01 4.02.06.97.04 1.5.2 1.85.34.46.18.79.4 1.14.75.35.35.57.68.75 1.14.14.35.3.88.34 1.85.05 1.05.06 1.37.06 4.02s-.01 2.97-.06 4.02c-.04.97-.2 1.5-.34 1.85-.18.46-.4.79-.75 1.14-.35.35-.68.57-1.14.75-.35.14-.88.3-1.85.34-1.05.05-1.37.06-4.02.06s-2.97-.01-4.02-.06c-.97-.04-1.5-.2-1.85-.34a3.05 3.05 0 01-1.14-.75 3.05 3.05 0 01-.75-1.14c-.14-.35-.3-.88-.34-1.85-.05-1.05-.06-1.37-.06-4.02s.01-2.97.06-4.02c.04-.97.2-1.5.34-1.85.18-.46.4-.79.75-1.14.35-.35.68-.57 1.14-.75.35-.14.88-.3 1.85-.34C9.03 3.81 9.35 3.8 12 3.8zm0 3.05a5.15 5.15 0 100 10.3 5.15 5.15 0 000-10.3zm0 8.5a3.35 3.35 0 110-6.7 3.35 3.35 0 010 6.7zm5.35-8.7a1.2 1.2 0 11-2.4 0 1.2 1.2 0 012.4 0z"/></svg>
+    <span>@lunchtimedead</span>
+  </a>
+  <a class="connect-pill connect-pill--icon" href="mailto:miwa.730@icloud.com" aria-label="Booking / contact" title="Booking / contact">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18a1 1 0 011 1v12a1 1 0 01-1 1H3a1 1 0 01-1-1V6a1 1 0 011-1zm1.8 2L12 12.5 19.2 7H4.8zM4 8.4V18h16V8.4l-7.4 5.35a1 1 0 01-1.2 0L4 8.4z"/></svg>
+  </a>
+</div>
+
+<!-- ══════════ POSTCARD (sticky) ══════════ -->
+<button class="postcard-fab" id="postcardFab" type="button">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18a1 1 0 011 1v12a1 1 0 01-1 1H3a1 1 0 01-1-1V6a1 1 0 011-1zm1.8 2L12 12.5 19.2 7H4.8zM4 8.4V18h16V8.4l-7.4 5.35a1 1 0 01-1.2 0L4 8.4z"/></svg>
+  <span data-i18n="wall.cta">LEAVE A POSTCARD</span>
+</button>
+
+<div class="modal" id="postcardModal" aria-hidden="true">
+  <div class="modal-backdrop" id="postcardBackdrop"></div>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="postcardModalTitle">
+    <button class="modal-close" id="postcardClose" type="button" aria-label="close">✕</button>
+    <h3 id="postcardModalTitle" data-i18n="wall.formTitle">Leave a postcard</h3>
+    <form id="postcardForm" class="admin-form">
+      <input type="text" id="pcName" placeholder="Name (optional)" maxlength="60">
+      <textarea id="pcMessage" maxlength="500" required data-i18n="wall.messagePh" data-i18n-attr="placeholder" placeholder="Say something to the band…"></textarea>
+      <div class="pc-count"><span id="pcCount">0</span>/500</div>
+      <label class="pc-photo-label" data-i18n="wall.photoLabel">Were you at a show? Attach a photo (optional — goes through a quick review)</label>
+      <input type="file" id="pcPhoto" accept="image/*">
+      <input type="text" id="pcWebsite" name="website" class="pc-honeypot" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <button type="submit" class="chip" data-i18n="wall.submit">SEND</button>
+    </form>
+    <p class="admin-note" id="pcStatus"></p>
+  </div>
+</div>
+
 <footer class="site-foot">
   <span class="osd">© 2026 LUNCHTIME DEAD ・ ランチタイム・デッド</span>
   <span class="osd"><a href="promo.html">PROMO REEL ▶</a> ・ <a href="https://www.youtube.com/watch?v=mLlyXlstjaM" target="_blank" rel="noopener">YOUTUBE ↗</a> ・ <a href="mailto:miwa.730@icloud.com">CONTACT</a></span>
@@ -358,6 +360,8 @@
 <script src="assets/logo-svg.js"></script>
 <script src="intro.js"></script>
 <script src="visualizer.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="supabase-client.js"></script>
 <script src="app.js"></script>
 <script src="hero3d.js"></script>
 </body>
