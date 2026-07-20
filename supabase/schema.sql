@@ -189,7 +189,7 @@ on conflict do nothing;
 
 insert into clips (title, youtube_url, watch_label, position)
 values (
-  'Tsubame big joy — A city with Green',
+  'Lunchtime Dead - Flying Girl',
   'https://www.youtube.com/embed/mLlyXlstjaM',
   'WATCH ON YOUTUBE ↗', 0
 )

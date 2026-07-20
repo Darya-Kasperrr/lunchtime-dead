@@ -338,7 +338,7 @@
     const clipsGrid = $('#clipsGrid');
     if (clipsGrid) {
       const FALLBACK_CLIPS = [{
-        title: 'Tsubame big joy — A city with Green',
+        title: 'Lunchtime Dead - Flying Girl',
         youtube_url: 'https://www.youtube.com/embed/mLlyXlstjaM',
         watch_label: 'WATCH ON YOUTUBE ↗'
       }];
