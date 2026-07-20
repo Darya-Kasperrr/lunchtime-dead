@@ -7,8 +7,8 @@
 (function () {
   'use strict';
 
-  const SUPABASE_URL = '';       // e.g. 'https://xxxxxxxx.supabase.co'
-  const SUPABASE_ANON_KEY = '';  // Project Settings → API → anon public key
+  const SUPABASE_URL = 'https://oembftvogqftgngueibs.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_TMIEtLb0SlsNE30fPK9PqQ_bJ2HUlJi';
 
   let client = null;
   if (SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase) {
